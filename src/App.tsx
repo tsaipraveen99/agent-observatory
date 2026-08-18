@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
+import { Overview } from "./components/Overview";
 import { SessionList } from "./components/SessionList";
 import { SessionView } from "./components/SessionView";
 import { loadIndex, loadSessionDetail, watchTranscripts, type SessionSummary } from "./lib/discover";
@@ -85,6 +86,8 @@ export default function App() {
           <SessionView detail={detail} />
         ) : selected ? (
           <div className="placeholder mono">reading transcript…</div>
+        ) : sessions.length > 0 ? (
+          <Overview sessions={sessions} />
         ) : (
           <div className="placeholder">
             <div className="placeholder-mark" aria-hidden="true">
