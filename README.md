@@ -1,4 +1,8 @@
-# Agent Observatory
+<p align="center">
+  <img src="app-icon.png" width="128" alt="Agent Observatory icon" />
+</p>
+
+<h1 align="center">Agent Observatory</h1>
 
 [![CI](https://github.com/tsaipraveen99/agent-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/tsaipraveen99/agent-observatory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-silver.svg)](LICENSE)

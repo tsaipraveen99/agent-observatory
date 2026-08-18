@@ -56,6 +56,19 @@ export default function App() {
     }
   }, []);
 
+  const goHome = useCallback(() => {
+    setSelected(null);
+    setDetail(null);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") goHome();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goHome]);
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -74,6 +87,10 @@ export default function App() {
           </div>
         )}
         {state.phase === "error" && <div className="error-box">{state.message}</div>}
+        <button className={`overview-link${selected ? "" : " active"}`} onClick={goHome}>
+          <span aria-hidden="true">◑</span> Overview
+          <kbd className="mono">esc</kbd>
+        </button>
         {sessions.length === 0 && state.phase === "ready" && (
           <div className="empty mono">
             No sessions found. Run Claude Code once, then reopen — transcripts appear here automatically.
