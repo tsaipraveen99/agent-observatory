@@ -410,6 +410,12 @@ body {
   position: relative;
 }
 
+/* Offscreen timeline rows skip layout/paint — keeps 1000-tool sessions smooth */
+.timeline > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}
+
 .tl-item {
   display: grid;
   grid-template-columns: 7px 46px 1fr;

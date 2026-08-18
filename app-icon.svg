@@ -1,0 +1,49 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232B3E"/>
+      <stop offset="0.55" stop-color="#131826"/>
+      <stop offset="1" stop-color="#0A0D15"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2C879"/>
+      <stop offset="0.5" stop-color="#DFA958"/>
+      <stop offset="1" stop-color="#A97B2E"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="squircle">
+      <rect x="100" y="100" width="824" height="824" rx="184"/>
+    </clipPath>
+  </defs>
+
+  <!-- base squircle -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#bg)"/>
+  <!-- inner edge highlight -->
+  <rect x="103" y="103" width="818" height="818" rx="181" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="3"/>
+
+  <g clip-path="url(#squircle)">
+    <!-- faint starfield -->
+    <circle cx="300" cy="270" r="5" fill="#E9E7E0" opacity="0.35"/>
+    <circle cx="740" cy="220" r="4" fill="#E9E7E0" opacity="0.28"/>
+    <circle cx="640" cy="330" r="3" fill="#E9E7E0" opacity="0.22"/>
+    <circle cx="250" cy="640" r="3.5" fill="#E9E7E0" opacity="0.2"/>
+    <circle cx="790" cy="600" r="4.5" fill="#E9E7E0" opacity="0.26"/>
+    <circle cx="420" cy="200" r="3" fill="#E9E7E0" opacity="0.2"/>
+
+    <!-- observatory aperture: ring + half-fill (the ◑ mark) -->
+    <circle cx="512" cy="512" r="238" fill="none" stroke="url(#bronze)" stroke-width="34"/>
+    <path d="M 512 308 A 204 204 0 0 1 512 716 Z" fill="url(#bronze)"/>
+
+    <!-- timeline ticks descending, echoing the session tape -->
+    <circle cx="512" cy="806" r="13" fill="#DFA958" opacity="0.9"/>
+    <circle cx="512" cy="856" r="10" fill="#DFA958" opacity="0.55"/>
+    <circle cx="512" cy="898" r="8" fill="#DFA958" opacity="0.3"/>
+
+    <!-- glass sheen -->
+    <rect x="100" y="100" width="824" height="824" fill="url(#sheen)"/>
+  </g>
+</svg>
