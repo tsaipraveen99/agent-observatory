@@ -63,8 +63,8 @@ npm run tauri build    # produces the .dmg locally
 
 Functional today: sessions list, replay, live refresh, cost estimation — all against real transcripts. Long sessions stay smooth via `content-visibility` render skipping.
 
-- [ ] Insight detectors ("retried a failing test 7 times — $2.10", "re-read the same file 14×")
-- [ ] Cross-session analytics (spend per project / per day)
+- [x] Insight detectors ("repeated an identical Bash call 5×", "re-read the same file 14×")
+- [x] Cross-session analytics — overview screen with spend by project and last-14-days chart
 - [ ] Cursor and other agent-tool adapters behind the same parser interface
 - [ ] Signed + notarized builds
 
