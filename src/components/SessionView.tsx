@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { detectInsights } from "../lib/transcript/insights";
 import type { SessionDetail, TimelineItem } from "../lib/transcript/types";
 import { fmtClock, fmtCost, fmtDuration, fmtSpan, fmtTokens, shortModel } from "../lib/fmt";
 
@@ -69,6 +70,7 @@ function ThinkingRow({ summary }: { summary: string }) {
 export function SessionView({ detail }: { detail: SessionDetail }) {
   const [showSidechain, setShowSidechain] = useState(false);
   const rows = useMemo(() => buildRows(detail.items, showSidechain), [detail, showSidechain]);
+  const insights = useMemo(() => detectInsights(detail), [detail]);
 
   return (
     <article className="session-view">
@@ -111,6 +113,19 @@ export function SessionView({ detail }: { detail: SessionDetail }) {
             <dd className="mono">{detail.models.map(shortModel).join(", ") || "—"}</dd>
           </div>
         </dl>
+        {insights.length > 0 && (
+          <ul className="insights" aria-label="Session insights">
+            {insights.map((insight, i) => (
+              <li key={i} className={`insight-chip${insight.severity === "warn" ? " insight-warn" : ""}`}>
+                <span className="insight-glyph" aria-hidden="true">
+                  {insight.severity === "warn" ? "▲" : "●"}
+                </span>
+                <span className="insight-title">{insight.title}</span>
+                <span className="insight-detail">{insight.detail}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         {detail.counts.sidechainItems > 0 && (
           <label className="sidechain-toggle">
             <input

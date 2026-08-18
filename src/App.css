@@ -392,6 +392,56 @@ body {
   font-weight: 600;
 }
 
+.insights {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.insight-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 11px;
+  border-radius: 9px;
+  background: var(--glass-soft);
+  box-shadow: var(--glass-edge);
+  min-width: 0;
+}
+
+.insight-warn {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.insight-glyph {
+  font-size: 8px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.insight-warn .insight-glyph {
+  color: var(--accent);
+}
+
+.insight-title {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.insight-detail {
+  font-size: 10px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .sidechain-toggle {
   display: inline-flex;
   align-items: center;
