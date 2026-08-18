@@ -22,7 +22,9 @@ export function SessionList({ sessions, selectedPath, onSelect }: Props) {
             <span className="session-when mono">{fmtWhen(s.endedAt)}</span>
           </div>
           <div className="session-row-bottom">
-            <span className="project-chip">{s.project}</span>
+            <span className={`project-chip${s.source === "cursor" ? " chip-cursor" : ""}`}>
+              {s.project}
+            </span>
             <Sparkline buckets={s.activity} />
             <span className="session-stats mono">
               {s.toolCalls} tools · {fmtSpan(s.startedAt, s.endedAt)} ·{" "}

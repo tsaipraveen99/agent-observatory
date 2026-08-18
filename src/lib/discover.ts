@@ -1,4 +1,6 @@
+import { invoke } from "@tauri-apps/api/core";
 import { BaseDirectory, readDir, readTextFile, stat, watch } from "@tauri-apps/plugin-fs";
+import { normalizeCursorConversation, workspaceProject, type CursorHeader } from "./cursor/normalize";
 import { parseTranscript } from "./transcript/parse";
 import type { SessionDetail } from "./transcript/types";
 
@@ -7,7 +9,8 @@ const CACHE_PREFIX = "ao:v1:";
 
 export interface SessionSummary {
   id: string;
-  path: string; // relative to $HOME
+  path: string; // relative to $HOME for Claude Code; "cursor:<composerId>" for Cursor
+  source: "claude" | "cursor";
   project: string;
   title?: string;
   startedAt?: string;
@@ -42,10 +45,28 @@ function activityBuckets(detail: SessionDetail): number[] {
   return buckets.map((b) => b / max);
 }
 
-function toSummary(detail: SessionDetail, path: string, project: string): SessionSummary {
+function cachePut(pathKey: string, cacheKey: string, summary: SessionSummary): void {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(`${CACHE_PREFIX}${pathKey}:`)) localStorage.removeItem(key);
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(summary));
+  } catch {
+    // cache full — fine, we just re-parse next launch
+  }
+}
+
+function toSummary(
+  detail: SessionDetail,
+  path: string,
+  project: string,
+  source: SessionSummary["source"],
+): SessionSummary {
   return {
     id: detail.id,
     path,
+    source,
     project,
     title: detail.title,
     startedAt: detail.startedAt,
@@ -59,13 +80,78 @@ function toSummary(detail: SessionDetail, path: string, project: string): Sessio
   };
 }
 
+interface CursorConversation {
+  composer_data: string | null;
+  bubbles: string[];
+}
+
+async function cursorHeaderFor(composerId: string): Promise<CursorHeader> {
+  const headers = await invoke<CursorHeader[]>("cursor_headers");
+  return (
+    headers.find((h) => h.composer_id === composerId) ?? {
+      composer_id: composerId,
+      workspace_folder: null,
+      created_at: null,
+      last_updated_at: null,
+      is_subagent: false,
+    }
+  );
+}
+
 export async function loadSessionDetail(relPath: string): Promise<SessionDetail> {
+  if (relPath.startsWith("cursor:")) {
+    const composerId = relPath.slice("cursor:".length);
+    const [header, conv] = await Promise.all([
+      cursorHeaderFor(composerId),
+      invoke<CursorConversation>("cursor_conversation", { composerId }),
+    ]);
+    return normalizeCursorConversation(header, conv.composer_data, conv.bubbles);
+  }
   const text = await readTextFile(relPath, { baseDir: BaseDirectory.Home });
   const id = relPath.split("/").pop()?.replace(".jsonl", "") ?? relPath;
   return parseTranscript(text, id);
 }
 
+async function loadCursorIndex(): Promise<SessionSummary[]> {
+  let headers: CursorHeader[];
+  try {
+    headers = await invoke<CursorHeader[]>("cursor_headers");
+  } catch {
+    return []; // Cursor not installed — not an error
+  }
+  const summaries: SessionSummary[] = [];
+  for (const h of headers.filter((h) => !h.is_subagent)) {
+    const pathKey = `cursor:${h.composer_id}`;
+    const cacheKey = `${CACHE_PREFIX}${pathKey}:${h.last_updated_at ?? 0}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      summaries.push(JSON.parse(cached) as SessionSummary);
+      continue;
+    }
+    try {
+      const conv = await invoke<CursorConversation>("cursor_conversation", {
+        composerId: h.composer_id,
+      });
+      const detail = normalizeCursorConversation(h, conv.composer_data, conv.bubbles);
+      if (detail.items.length === 0) continue;
+      const summary = toSummary(detail, pathKey, workspaceProject(h.workspace_folder), "cursor");
+      cachePut(pathKey, cacheKey, summary);
+      summaries.push(summary);
+    } catch {
+      // one unreadable conversation shouldn't hide the rest
+    }
+  }
+  return summaries;
+}
+
 export async function loadIndex(onProgress?: (done: number, total: number) => void): Promise<SessionSummary[]> {
+  const [claude, cursor] = await Promise.all([loadClaudeIndex(onProgress), loadCursorIndex()]);
+  const merged = [...claude, ...cursor];
+  merged.sort((a, b) => (b.endedAt ?? "").localeCompare(a.endedAt ?? ""));
+  return merged;
+}
+
+async function loadClaudeIndex(onProgress?: (done: number, total: number) => void): Promise<SessionSummary[]> {
   const projectDirs = await readDir(ROOT, { baseDir: BaseDirectory.Home });
   const files: Array<{ path: string; project: string }> = [];
   for (const dir of projectDirs) {
@@ -99,17 +185,8 @@ export async function loadIndex(onProgress?: (done: number, total: number) => vo
           done++;
           continue; // empty shells (aborted launches) add noise, skip them
         }
-        const summary = toSummary(detail, file.path, file.project);
-        try {
-          // Drop stale cache entries for this path before writing the new one.
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i);
-            if (key?.startsWith(`${CACHE_PREFIX}${file.path}:`)) localStorage.removeItem(key);
-          }
-          localStorage.setItem(cacheKey, JSON.stringify(summary));
-        } catch {
-          // cache full — fine, we just re-parse next launch
-        }
+        const summary = toSummary(detail, file.path, file.project, "claude");
+        cachePut(file.path, cacheKey, summary);
         summaries.push(summary);
       }
     } catch {

@@ -6,6 +6,7 @@ function summary(partial: Partial<SessionSummary>): SessionSummary {
   return {
     id: "s",
     path: "p",
+    source: "claude",
     project: "proj",
     costUsd: 0,
     models: [],
